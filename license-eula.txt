@@ -1,0 +1,5 @@
+TA-wingpy is distributed as part of the wingpy project under the GNU General Public License v3.0 or later.
+
+See the bundled LICENSE, NOTICE, and AUTHORS files for the full license terms, notices, and attribution information.
+
+Splunk Enterprise is a separate product and remains subject to Splunk's own licensing terms.

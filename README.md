@@ -1,0 +1,69 @@
+# TA-wingpy
+
+TA-wingpy is a Splunk Technology Add-on for onboarding wingpy NDJSON logs.
+
+It is intentionally limited to ingestion and normalization:
+
+- It defines the `wingpy_log` sourcetype.
+- It expects one JSON object per log line.
+- It extracts fields at search time with `KV_MODE = json`.
+- It normalizes a few fields for CIM-oriented searches.
+- It can be deployed on standalone Splunk, distributed deployments, forwarders, indexers, and search heads.
+
+## Logging Requirements
+
+Wingpy must write newline-delimited JSON where `timestamp` is the first field in each line and uses ISO 8601 with millisecond precision.
+
+Example:
+
+```json
+{"timestamp":"2026-08-24T14:06:47.107+02:00","level":"INFO","message":"Security event","answer":"42","user":"fkj@wingmen.security"}
+```
+
+Use the dedicated wingpy helper for this format:
+
+```python
+import wingpy
+from wingpy.logging import logger
+
+wingpy.log_to_splunk_file("INFO", "wingpy.log")
+logger.bind(answer="42", user="fkj@wingmen.security").info("Security event")
+```
+
+## Installation
+
+Install the generated `TA-wingpy-<version>.spl` package from the public `wingmendk/TA-wingpy` GitHub releases page, or unpack it into `$SPLUNK_HOME/etc/apps/TA-wingpy`.
+
+Restart Splunk after installation if your deployment model requires it.
+
+## Deployment Notes
+
+- Keep shipped defaults in `default/` unchanged.
+- Put environment-specific overrides in `local/`, for example local index selection or monitored file paths.
+- The default monitor stanza watches `/var/log/wingpy.log`, sets `sourcetype = wingpy_log`, and writes to the `wingpy` index.
+- If your forwarder or indexer uses another path or index, override only those values in `local/inputs.conf`.
+
+## Maintainer Release Flow
+
+- The checked-in source of truth for the app lives in this directory's `app.manifest` and `default/app.conf`.
+- `tools/build_ta.py` validates and packages the TA. It does not rewrite metadata during packaging.
+- `tools/sync_ta_release.py` is the explicit release-prep step that updates TA versioned metadata before tagging.
+- Public TA releases are published from the dedicated `wingmendk/TA-wingpy` GitHub repository.
+
+Recommended sequence:
+
+1. Bump the version in `pyproject.toml`.
+2. Run `make ta-release-sync`.
+3. Review and commit the metadata diff in `TA-wingpy/app.manifest` and `TA-wingpy/default/app.conf`.
+4. Create and push the release tag.
+5. Let CI validate, package, and publish the `.spl` artifact.
+
+## Included Files
+
+- `default/app.conf` contains Splunk app metadata.
+- `default/inputs.conf` contains the default file monitor.
+- `default/props.conf` configures NDJSON timestamp parsing and field extraction.
+- `default/eventtypes.conf` and `default/tags.conf` add a minimal CIM normalization layer.
+- `license-eula.txt`, `LICENSE`, `NOTICE`, and `AUTHORS` document licensing and attribution.
+
+
