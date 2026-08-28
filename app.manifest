@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "Wingmen Solutions Wingpy",
+    "id": {
+      "name": "TA-wingpy",
+      "version": "1.7.0"
+    },
+    "author": [
+      {
+        "name": "Emil Bisgaard Commerou",
+        "email": "ebc@wingmen.dk",
+        "company": "Wingmen Solutions"
+      }
+    ],
+    "releaseDate": "2026-08-27",
+    "description": "Technology Add-on for onboarding wingpy NDJSON logs into Splunk.",
+    "classification": {
+      "intendedAudience": "Security",
+      "categories": [
+        "Security Operations"
+      ],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": null,
+    "license": {
+      "name": "GNU General Public License v3 or later",
+      "text": "license-eula.txt",
+      "uri": "https://www.gnu.org/licenses/gpl-3.0.html"
+    },
+    "releaseNotes": {
+      "name": "README",
+      "text": "README.md",
+      "uri": "https://github.com/wingmendk/TA-wingpy/releases/tag/v1.7.0"
+    }
+  },
+  "dependencies": {},
+  "supportedDeployments": [
+    "_standalone",
+    "_distributed",
+    "_search_head_clustering"
+  ],
+  "targetWorkloads": [
+    "_universal_forwarders",
+    "_heavy_forwarders",
+    "_indexers",
+    "_search_heads"
+  ]
+}

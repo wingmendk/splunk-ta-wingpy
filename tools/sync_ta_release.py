@@ -19,7 +19,6 @@ from build_ta import (
     APP_MANIFEST_PATH,
     LICENSE_NAME,
     LICENSE_URI,
-    PYPROJECT_PATH,
     RELEASE_NOTES_NAME,
     RELEASE_NOTES_TEXT,
     TA_DESCRIPTION,
@@ -27,9 +26,9 @@ from build_ta import (
     TA_TITLE,
     expected_release_notes_uri,
     load_manifest,
-    read_project_version,
     render_app_conf,
     validate_source_metadata,
+    version_from_tag,
 )
 
 
@@ -111,6 +110,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--tag",
+        required=True,
         help="Git tag to reference in the manifest release notes URI.",
     )
     parser.add_argument(
@@ -136,8 +136,8 @@ def main() -> int:
         If synchronization or validation fails.
     """
     args = parse_args()
-    version = read_project_version(PYPROJECT_PATH)
-    tag = args.tag or f"v{version}"
+    tag = args.tag
+    version = version_from_tag(tag)
 
     sync_manifest(version, args.release_date, tag)
     sync_app_conf(version)

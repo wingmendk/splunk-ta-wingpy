@@ -52,11 +52,19 @@ Restart Splunk after installation if your deployment model requires it.
 
 Recommended sequence:
 
-1. Bump the version in `pyproject.toml`.
-2. Run `make ta-release-sync`.
-3. Review and commit the metadata diff in `TA-wingpy/app.manifest` and `TA-wingpy/default/app.conf`.
-4. Create and push the release tag.
-5. Let CI validate, package, and publish the `.spl` artifact.
+1. Choose the release version and create the release tag in `v<version>` format.
+2. Run `python tools/sync_ta_release.py --tag v<version>`.
+3. Review and commit the metadata diff in `app.manifest` and `default/app.conf`.
+4. Push the release tag.
+5. GitHub Actions validates metadata, builds the `.spl`, and publishes it to the `wingmendk/TA-wingpy` GitHub release.
+6. Splunkbase publishing is currently disabled in CI while this repository is private.
+7. Re-enable the `splunkbase_publish` job in `.github/workflows/release.yml` when ready to publish to Splunkbase.
+
+Required repository secrets for the Splunkbase job:
+
+- `SPLUNKBASE_UPLOAD_URL`
+- `SPLUNKBASE_API_TOKEN`
+- `SPLUNKBASE_APP_ID` (optional, but recommended)
 
 ## Included Files
 

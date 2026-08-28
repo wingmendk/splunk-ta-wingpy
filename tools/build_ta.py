@@ -21,8 +21,7 @@ from pathlib import Path
 from typing import Any, Final
 
 REPO_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
-PYPROJECT_PATH: Final[Path] = REPO_ROOT / "pyproject.toml"
-TA_SOURCE_DIR: Final[Path] = REPO_ROOT / "TA-wingpy"
+TA_SOURCE_DIR: Final[Path] = REPO_ROOT
 DEFAULT_OUTPUT_DIR: Final[Path] = REPO_ROOT / "dist"
 APP_MANIFEST_PATH: Final[Path] = TA_SOURCE_DIR / "app.manifest"
 APP_CONF_PATH: Final[Path] = TA_SOURCE_DIR / "default" / "app.conf"
@@ -48,35 +47,73 @@ RELEASE_NOTES_NAME: Final[str] = "README"
 RELEASE_NOTES_TEXT: Final[str] = "README.md"
 LICENSE_NAME: Final[str] = "GNU General Public License v3 or later"
 LICENSE_URI: Final[str] = "https://www.gnu.org/licenses/gpl-3.0.html"
+TAG_VERSION_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"^v(?P<version>\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$"
+)
 
 
-def read_project_version(pyproject_path: Path) -> str:
+def version_from_tag(tag: str) -> str:
     """
-    Extract the canonical project version from pyproject.toml.
+    Parse a release version from a git tag.
 
     Parameters
     ----------
-    pyproject_path
-        Path to the repository pyproject.toml file.
+    tag
+        Release tag in v<version> form.
 
     Returns
     -------
     str
-        The configured project version.
+        Parsed semantic version string.
 
     Raises
     ------
     ValueError
-        If the version cannot be located.
+        If the tag does not follow v<version> format.
     """
-    content = pyproject_path.read_text(encoding="utf-8")
-    version_match = re.search(
-        r'^version = "(?P<version>[^"]+)"$', content, re.MULTILINE
-    )
+    version_match = TAG_VERSION_PATTERN.match(tag)
     if version_match is None:
-        raise ValueError(f"Unable to determine version from {pyproject_path}.")
+        raise ValueError(
+            "Release tags must follow v<semantic-version>, for example v1.7.0. "
+            f"Got {tag!r}."
+        )
 
     return version_match.group("version")
+
+
+def read_manifest_version(manifest_path: Path) -> str:
+    """
+    Read the TA version from app.manifest.
+
+    Parameters
+    ----------
+    manifest_path
+        Path to app.manifest.
+
+    Returns
+    -------
+    str
+        The configured TA version.
+
+    Raises
+    ------
+    ValueError
+        If the manifest does not define a valid info.id.version value.
+    """
+    manifest = load_manifest(manifest_path)
+    info = manifest.get("info")
+    if not isinstance(info, dict):
+        raise TypeError("TA app.manifest must contain an info object.")
+
+    identity = info.get("id")
+    if not isinstance(identity, dict):
+        raise TypeError("TA app.manifest info.id must be an object.")
+
+    version = identity.get("version")
+    if not isinstance(version, str) or not version:
+        raise TypeError("TA app.manifest info.id.version must be a non-empty string.")
+
+    return version
 
 
 def render_app_conf(version: str) -> str:
@@ -202,6 +239,28 @@ def validate_ta_directory(ta_dir: Path) -> None:
         )
 
 
+def validate_license_files(root_dir: Path) -> None:
+    """
+    Validate that legal files required for the package are present.
+
+    Parameters
+    ----------
+    root_dir
+        Repository root directory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If one or more legal files are missing.
+    """
+    missing_files = [
+        file_name for file_name in LICENSE_FILES if not (root_dir / file_name).is_file()
+    ]
+    if missing_files:
+        missing = ", ".join(sorted(missing_files))
+        raise FileNotFoundError(f"Missing required legal files: {missing}")
+
+
 def validate_source_metadata(expected_tag: str | None = None) -> None:
     """
     Validate the checked-in TA metadata against project expectations.
@@ -219,16 +278,17 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
         If metadata files do not match the expected release configuration.
     """
     validate_ta_directory(TA_SOURCE_DIR)
+    validate_license_files(REPO_ROOT)
 
-    version = read_project_version(PYPROJECT_PATH)
     manifest = load_manifest(APP_MANIFEST_PATH)
+    version = read_manifest_version(APP_MANIFEST_PATH)
     info = manifest.get("info")
     if not isinstance(info, dict):
-        raise ValueError("TA app.manifest must contain an info object.")
+        raise TypeError("TA app.manifest must contain an info object.")
 
     identity = info.get("id")
     if not isinstance(identity, dict):
-        raise ValueError("TA app.manifest info.id must be an object.")
+        raise TypeError("TA app.manifest info.id must be an object.")
 
     if info.get("title") != TA_TITLE:
         raise ValueError(f"TA title must be {TA_TITLE!r}.")
@@ -246,7 +306,7 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
 
     license_info = info.get("license")
     if not isinstance(license_info, dict):
-        raise ValueError("TA app.manifest license must be an object.")
+        raise TypeError("TA app.manifest license must be an object.")
 
     if license_info.get("name") != LICENSE_NAME:
         raise ValueError("TA manifest license name does not match the expected value.")
@@ -259,7 +319,7 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
 
     release_notes = info.get("releaseNotes")
     if not isinstance(release_notes, dict):
-        raise ValueError("TA app.manifest releaseNotes must be an object.")
+        raise TypeError("TA app.manifest releaseNotes must be an object.")
 
     if release_notes.get("name") != RELEASE_NOTES_NAME:
         raise ValueError(
@@ -273,7 +333,7 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
 
     release_uri = release_notes.get("uri")
     if not isinstance(release_uri, str):
-        raise ValueError("TA manifest releaseNotes.uri must be a string.")
+        raise TypeError("TA manifest releaseNotes.uri must be a string.")
 
     if expected_tag is not None:
         expected_uri = expected_release_notes_uri(expected_tag)
@@ -281,6 +341,13 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
             raise ValueError(
                 "TA manifest releaseNotes.uri does not match the expected release tag. "
                 f"Expected {expected_uri!r}, got {release_uri!r}."
+            )
+
+        expected_version = version_from_tag(expected_tag)
+        if version != expected_version:
+            raise ValueError(
+                "TA manifest version does not match the release tag. "
+                f"Expected {expected_version!r}, got {version!r}."
             )
     elif not release_uri.startswith(
         f"https://github.com/{RELEASE_REPOSITORY}/releases"
@@ -343,11 +410,15 @@ def prepare_staging_directory() -> Path:
     ValueError
         If the source metadata is invalid.
     """
-    validate_source_metadata()
-
     temp_dir = Path(tempfile.mkdtemp(prefix="wingpy-ta-"))
     staged_ta_dir = temp_dir / TA_NAME
-    shutil.copytree(TA_SOURCE_DIR, staged_ta_dir)
+    staged_ta_dir.mkdir(parents=True, exist_ok=True)
+
+    for relative_file in REQUIRED_TA_FILES:
+        source_path = REPO_ROOT / relative_file
+        destination_path = staged_ta_dir / relative_file
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, destination_path)
 
     for license_file in LICENSE_FILES:
         shutil.copy2(REPO_ROOT / license_file, staged_ta_dir / license_file)
@@ -385,6 +456,9 @@ def verify_archive(archive_path: Path, version: str) -> None:
         required_members = {
             f"{TA_NAME}/{required_file}" for required_file in REQUIRED_TA_FILES
         }
+        required_members.update(
+            {f"{TA_NAME}/{license_file}" for license_file in LICENSE_FILES}
+        )
         missing_members = sorted(required_members - members)
         if missing_members:
             missing = ", ".join(missing_members)
@@ -425,7 +499,7 @@ def verify_archive(archive_path: Path, version: str) -> None:
             )
 
 
-def build_ta(output_dir: Path) -> Path:
+def build_ta(output_dir: Path, expected_tag: str | None = None) -> Path:
     """
     Build the Splunk TA archive.
 
@@ -446,7 +520,8 @@ def build_ta(output_dir: Path) -> Path:
     ValueError
         If project metadata is invalid.
     """
-    version = read_project_version(PYPROJECT_PATH)
+    validate_source_metadata(expected_tag=expected_tag)
+    version = read_manifest_version(APP_MANIFEST_PATH)
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = output_dir / f"{TA_NAME}-{version}.spl"
 
@@ -525,7 +600,7 @@ def main() -> int:
         If metadata validation fails.
     """
     args = parse_args()
-    version = read_project_version(PYPROJECT_PATH)
+    version = read_manifest_version(APP_MANIFEST_PATH)
 
     if args.validate_source:
         validate_source_metadata(expected_tag=args.expected_tag)
@@ -545,7 +620,7 @@ def main() -> int:
         print(f"Verified {artifact_path}")
         return 0
 
-    artifact_path = build_ta(args.output_dir)
+    artifact_path = build_ta(args.output_dir, expected_tag=args.expected_tag)
     print(artifact_path)
     return 0
 

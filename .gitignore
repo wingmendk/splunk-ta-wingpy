@@ -183,4 +183,4 @@ requirements.txt
 
 wingpy-coding-skill/
 # keep app manifest for Splunk TA
-!TA-wingpy/app.manifest
+!app.manifest
