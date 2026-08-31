@@ -48,7 +48,7 @@ Restart Splunk after installation if your deployment model requires it.
 - The checked-in source of truth for the app lives in this directory's `app.manifest` and `default/app.conf`.
 - `tools/build_ta.py` validates and packages the TA. It does not rewrite metadata during packaging.
 - `tools/sync_ta_release.py` is the explicit release-prep step that updates TA versioned metadata before tagging.
-- Public TA releases are published from the dedicated `wingmendk/TA-wingpy` GitHub repository.
+- CI publishes TA release assets to the GitHub repository where the workflow runs.
 
 Recommended sequence:
 
@@ -56,7 +56,7 @@ Recommended sequence:
 2. Run `python tools/sync_ta_release.py --tag v<version>`.
 3. Review and commit the metadata diff in `app.manifest` and `default/app.conf`.
 4. Push the release tag.
-5. GitHub Actions validates metadata, builds the `.spl`, and publishes it to the `wingmendk/TA-wingpy` GitHub release.
+5. GitHub Actions validates metadata, builds the `.spl`, and publishes it to the current repository's GitHub release.
 6. Splunkbase publishing is currently disabled in CI while this repository is private.
 7. Re-enable the `splunkbase_publish` job in `.github/workflows/release.yml` when ready to publish to Splunkbase.
 

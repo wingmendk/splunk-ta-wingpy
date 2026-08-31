@@ -243,4 +243,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        print(f"GitHub API request failed with HTTP {exc.code}: {body}")
+        raise
