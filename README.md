@@ -2,6 +2,9 @@
 
 TA-wingpy is a Splunk Technology Add-on for onboarding wingpy NDJSON logs.
 
+Visit [wingpy.net](https://wingpy.net) and
+[wingpy.automation.wingmen.dk](https://wingpy.automation.wingmen.dk) for wingpy.
+
 It is intentionally limited to ingestion and normalization:
 
 - It defines the `wingpy_log` sourcetype.
