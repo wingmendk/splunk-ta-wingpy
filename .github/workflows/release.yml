@@ -42,6 +42,9 @@ jobs:
       - name: Validate source metadata
         run: python tools/build_ta.py --validate-source --expected-tag "${GITHUB_REF_NAME}"
 
+      - name: Test release metadata validation
+        run: python -m unittest discover -s tests
+
       - name: Build package
         run: python tools/build_ta.py --output-dir dist --expected-tag "${GITHUB_REF_NAME}"
 
