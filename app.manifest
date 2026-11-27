@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "info": {
-    "title": "Wingmen Solutions Wingpy",
+    "title": "Wingmen Add-on for wingpy",
     "id": {
       "name": "TA-wingpy",
       "version": "1.7.0"
@@ -31,7 +31,7 @@
     "releaseNotes": {
       "name": "README",
       "text": "README.md",
-      "uri": "https://github.com/wingmendk/TA-wingpy/releases/tag/v1.7.0"
+      "uri": "https://github.com/wingmendk/splunk-ta-wingpy/releases/tag/v1.7.0"
     }
   },
   "dependencies": {},
