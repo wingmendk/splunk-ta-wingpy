@@ -30,19 +30,17 @@ REQUIRED_TA_FILES: Final[tuple[str, ...]] = (
     "README.md",
     "app.manifest",
     "default/app.conf",
-    "default/eventtypes.conf",
     "default/inputs.conf",
     "default/props.conf",
-    "default/tags.conf",
     "license-eula.txt",
 )
 TA_DESCRIPTION: Final[str] = (
     "Technology Add-on for onboarding wingpy NDJSON logs into Splunk."
 )
 TA_NAME: Final[str] = "TA-wingpy"
-TA_TITLE: Final[str] = "Wingmen Solutions Wingpy"
+TA_TITLE: Final[str] = "Wingmen Add-on for wingpy"
 TA_AUTHOR: Final[str] = "Wingmen Solutions ApS"
-RELEASE_REPOSITORY: Final[str] = "wingmendk/TA-wingpy"
+RELEASE_REPOSITORY: Final[str] = "wingmendk/splunk-ta-wingpy"
 RELEASE_NOTES_NAME: Final[str] = "README"
 RELEASE_NOTES_TEXT: Final[str] = "README.md"
 LICENSE_NAME: Final[str] = "GNU General Public License v3 or later"
@@ -147,18 +145,18 @@ def render_app_conf(version: str) -> str:
             "",
             "[id]",
             f"name = {TA_NAME}",
+            f"version = {version}",
             "",
             "[package]",
             f"id = {TA_NAME}",
             "check_for_updates = false",
             "",
             "[install]",
-            "is_configured = true",
             "state = enabled",
             "",
             "[ui]",
             "is_visible = false",
-            f"label = {TA_NAME}",
+            f"label = {TA_TITLE}",
             "",
         ]
     )
@@ -372,20 +370,20 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
     if config["launcher"]["version"] != version:
         raise ValueError("TA app.conf version does not match the package version.")
 
+    if config["id"]["version"] != version:
+        raise ValueError("TA app.conf id version does not match the package version.")
+
     if config["launcher"]["description"] != TA_DESCRIPTION:
         raise ValueError("TA app.conf description does not match the expected value.")
 
-    if config["ui"]["label"] != TA_NAME:
-        raise ValueError("TA app.conf UI label must match the TA name.")
+    if config["ui"]["label"] != TA_TITLE:
+        raise ValueError("TA app.conf UI label must match the TA title.")
 
     if config["launcher"]["author"] != TA_AUTHOR:
         raise ValueError("TA app.conf author does not match the expected value.")
 
     if config["package"]["check_for_updates"].lower() != "false":
         raise ValueError("TA app.conf package.check_for_updates must be false.")
-
-    if config["install"]["is_configured"].lower() != "true":
-        raise ValueError("TA app.conf install.is_configured must be true.")
 
     if config["install"]["state"] != "enabled":
         raise ValueError("TA app.conf install.state must be enabled.")
