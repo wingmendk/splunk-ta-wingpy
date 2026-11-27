@@ -23,7 +23,9 @@ Example:
 {"timestamp":"2026-08-24T14:06:47.107+02:00","level":"INFO","message":"Security event","answer":"42","user":"fkj@wingmen.security"}
 ```
 
-Use the dedicated wingpy helper for this format:
+Use the dedicated wingpy helper for this format; see the
+[wingpy logging guide](https://wingpy.automation.wingmen.dk/user-guide/#logging)
+for details:
 
 ```python
 import wingpy
