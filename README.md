@@ -18,14 +18,8 @@ It is intentionally limited to ingestion and normalization:
 
 Wingpy must write newline-delimited JSON where `timestamp` is the first field in each line and uses ISO 8601 with millisecond precision.
 
-Example:
-
-```json
-{"timestamp":"2026-08-24T14:06:47.107+02:00","level":"INFO","message":"Security event","answer":"42","user":"fkj@wingmen.security"}
-```
-
-Use the dedicated wingpy helper for this format; see the
-[wingpy logging guide](https://wingpy.automation.wingmen.dk/user-guide/#logging)
+Use the wingpy helper to write this format. Bind useful context to each event;
+see the [wingpy logging guide](https://wingpy.automation.wingmen.dk/user-guide/#logging)
 for details:
 
 ```python
@@ -33,7 +27,15 @@ import wingpy
 from wingpy.logging import logger
 
 wingpy.log_to_splunk_file("INFO", "wingpy.log")
-logger.bind(answer="42", user="fkj@wingmen.security").info("Security event")
+logger.bind(device="router01", user="wingpy@wingmen.dk").info(
+    "Device inventory collected"
+)
+```
+
+The resulting file contains one JSON object per line, for example:
+
+```json
+{"timestamp":"2026-08-24T14:06:47.107+02:00","level":"INFO","message":"Device inventory collected","device":"router01","user":"wingpy@wingmen.dk"}
 ```
 
 ## Installation
