@@ -40,6 +40,9 @@ TA_DESCRIPTION: Final[str] = (
 TA_NAME: Final[str] = "TA-wingpy"
 TA_TITLE: Final[str] = "Wingmen Add-on for wingpy"
 TA_AUTHOR: Final[str] = "Wingmen Solutions ApS"
+TARGET_WORKLOADS: Final[frozenset[str]] = frozenset(
+    {"*", "_search_heads", "_indexers", "_forwarders"}
+)
 RELEASE_REPOSITORY: Final[str] = "wingmendk/splunk-ta-wingpy"
 RELEASE_NOTES_NAME: Final[str] = "README"
 RELEASE_NOTES_TEXT: Final[str] = "README.md"
@@ -149,7 +152,7 @@ def render_app_conf(version: str) -> str:
             "",
             "[package]",
             f"id = {TA_NAME}",
-            "check_for_updates = false",
+            "check_for_updates = true",
             "",
             "[install]",
             "state = enabled",
@@ -280,6 +283,17 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
 
     manifest = load_manifest(APP_MANIFEST_PATH)
     version = read_manifest_version(APP_MANIFEST_PATH)
+    target_workloads = manifest.get("targetWorkloads")
+    if (
+        not isinstance(target_workloads, list)
+        or not target_workloads
+        or any(
+            not isinstance(workload, str) or workload not in TARGET_WORKLOADS
+            for workload in target_workloads
+        )
+    ):
+        raise ValueError("TA manifest targetWorkloads must contain valid Splunk targets.")
+
     info = manifest.get("info")
     if not isinstance(info, dict):
         raise TypeError("TA app.manifest must contain an info object.")
@@ -382,8 +396,8 @@ def validate_source_metadata(expected_tag: str | None = None) -> None:
     if config["launcher"]["author"] != TA_AUTHOR:
         raise ValueError("TA app.conf author does not match the expected value.")
 
-    if config["package"]["check_for_updates"].lower() != "false":
-        raise ValueError("TA app.conf package.check_for_updates must be false.")
+    if config["package"]["check_for_updates"].lower() != "true":
+        raise ValueError("TA app.conf package.check_for_updates must be true.")
 
     if config["install"]["state"] != "enabled":
         raise ValueError("TA app.conf install.state must be enabled.")

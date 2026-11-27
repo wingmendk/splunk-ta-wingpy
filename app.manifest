@@ -41,8 +41,7 @@
     "_search_head_clustering"
   ],
   "targetWorkloads": [
-    "_universal_forwarders",
-    "_heavy_forwarders",
+    "_forwarders",
     "_indexers",
     "_search_heads"
   ]

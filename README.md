@@ -77,7 +77,7 @@ Recommended sequence:
 3. Review and commit the metadata diff in `app.manifest` and `default/app.conf`.
 4. Create the tag on that commit and push the commit and tag.
 5. GitHub Actions validates metadata, builds the `.spl`, and publishes it to the current repository's GitHub release.
-6. Run Splunk AppInspect on the generated package and resolve its findings before submitting the package to Splunkbase.
+6. Validate the generated package with Splunk Packaging Toolkit (`slim validate <package.spl>`) and Splunk AppInspect. Resolve their findings before submitting the package to Splunkbase.
 7. Submit the package to Splunkbase manually. Automated publishing is disabled and its upload endpoint and authentication must be verified before it is enabled.
 
 Required repository secrets for the Splunkbase job:
